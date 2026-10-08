@@ -8,7 +8,6 @@
 #/storage/*.key
 /storage/app/*
 /storage/framework/cache/*
-/vendor
 .vscode
 .idea
 .idea/*

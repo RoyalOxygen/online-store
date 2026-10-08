@@ -9,6 +9,25 @@ Laravel ecommerce storefront with admin, vendor, and customer apps.
 - Composer
 - Node.js 18+
 
+## XAMPP (Windows)
+
+1. Copy this project to `C:\xampp\htdocs\online-store`.
+2. Copy `.env.example` to `.env`.
+3. In `.env` set `DB_DATABASE=online_store`, `DB_USERNAME=root`, and `DB_PASSWORD=` (or your MySQL password).
+4. Create an empty MySQL database named `online_store`.
+5. Import `installation/backup/database.sql` in phpMyAdmin. Do not migrate on an empty database.
+6. From the project folder:
+
+```bash
+php artisan key:generate
+php artisan storage:link
+php artisan optimize:clear
+```
+
+7. Open `http://localhost/online-store`.
+
+PHP dependencies are included in `vendor/`. If `vendor/autoload.php` is missing, run `php composer.phar install --ignore-platform-reqs`.
+
 ## Setup
 
 Copy `.env.example` to `.env` and set your database credentials.
