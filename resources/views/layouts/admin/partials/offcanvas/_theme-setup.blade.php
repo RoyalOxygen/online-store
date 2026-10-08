@@ -38,7 +38,7 @@
                             {{ translate('if_you_wish_to_activate_the_theme_later,_navigate_to_the_available_themes_list,_select_the_desired_theme,_and_click_activate') }}
                         </li>
                         <li>
-                            {{ translate('theme_activation_requires_your_codecanyon_username_and_the_purchase_code_associated_with_that_theme.') }}
+                            {{ translate('select_the_desired_theme_and_click_activate') }}
                         </li>
                         <li>
                             {{ translate('upon_successful_activation,_a_popup_message_will_inform_you_about_the_visual_changes_implemented_by_the_theme_in_the_relevant_sections_of_the_system.') }}

@@ -796,8 +796,11 @@ trait UpdateClass
             Artisan::call('file:permission');
         } catch (Exception $e) {}
 
-        if (DOMAIN_POINTED_DIRECTORY == 'public' && function_exists('shell_exec')) {
-            shell_exec('ln -s ../resources/themes themes');
+        if (DOMAIN_POINTED_DIRECTORY == 'public') {
+            $themeLink = public_path('themes');
+            if (!file_exists($themeLink) && !is_link($themeLink)) {
+                @symlink(base_path('resources/themes'), $themeLink);
+            }
             Artisan::call('storage:link');
         }
     }

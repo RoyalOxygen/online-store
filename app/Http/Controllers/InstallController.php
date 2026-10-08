@@ -2,13 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\UpdatePurchaseCodeRequest;
 use App\Traits\EmailTemplateTrait;
 use App\Traits\InstallationTrail;
 use App\Traits\SettingsTrait;
 use App\Traits\UpdateClass;
 use App\Traits\ActivationClass;
-use Devrabiul\ToastMagic\Facades\ToastMagic;
 use Exception;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -35,9 +33,9 @@ class InstallController extends Controller
         return view('installation.step1', compact('permission'));
     }
 
-    public function step2(): View
+    public function step2(): RedirectResponse
     {
-        return view('installation.step2');
+        return redirect('step3');
     }
 
     public function step3(): View
@@ -52,8 +50,11 @@ class InstallController extends Controller
 
     public function step5(): View
     {
-        if (DOMAIN_POINTED_DIRECTORY == 'public' && function_exists('shell_exec')) {
-            shell_exec('ln -s ../resources/themes themes');
+        if (DOMAIN_POINTED_DIRECTORY == 'public') {
+            $themeLink = public_path('themes');
+            if (!file_exists($themeLink) && !is_link($themeLink)) {
+                @symlink(base_path('resources/themes'), $themeLink);
+            }
             Artisan::call('storage:link');
         }
 
@@ -69,47 +70,9 @@ class InstallController extends Controller
         return view('installation.step5');
     }
 
-    public function updatePurchaseCode(UpdatePurchaseCodeRequest $request): RedirectResponse
+    public function updatePurchaseCode(Request $request): RedirectResponse
     {
-        $this->setEnvironmentValue(envKey: 'SOFTWARE_ID', envValue: 'MzE0NDg1OTc=');
-
-        $adminEmail = base64_encode(preg_replace('/\s+/', '', $request['email']));
-        $username = preg_replace('/\s+/', '', $request['username']);
-        $purchaseKey = preg_replace('/\s+/', '', $request['purchase_key']);
-
-        $this->setEnvironmentValue(envKey: 'BUYER_USERNAME', envValue: $username);
-        $this->setEnvironmentValue(envKey: 'PURCHASE_CODE', envValue: $purchaseKey);
-
-        session()->put('admin_name', $request['name']);
-        session()->put('admin_email', $adminEmail);
-        session()->put('username', $username);
-        session()->put('purchase_key', $purchaseKey);
-
-        $response = $this->getRequestConfig(
-            username: $username,
-            purchaseKey: $purchaseKey,
-            softwareId: SOFTWARE_ID,
-            softwareType: base64_decode('cHJvZHVjdA=='),
-            name: $request['name'],
-            identifier: $request['email'],
-        );
-        $this->updateActivationConfig(app: 'admin_panel', response: $response);
-        $status = $response['active'] ?? 0;
-
-        if ((int)$status) {
-            return redirect(base64_decode('c3RlcDM=') . '?token=' . bcrypt('step_3'));
-        }
-
-        if (!empty($response['errors'])) {
-            foreach ($response['errors'] as $error) {
-                $message = is_array($error) ? ($error[0] ?? 'Unknown error') : $error;
-                ToastMagic::error($message);
-            }
-        } else {
-            ToastMagic::error('Verification Failed Try Again');
-        }
-
-        return back();
+        return redirect('step3');
     }
 
     public function updateSystemSettings(Request $request): View

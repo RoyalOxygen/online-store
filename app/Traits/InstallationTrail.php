@@ -376,11 +376,8 @@ trait InstallationTrail
             'DB_USERNAME' => $request['DB_USERNAME'],
             'DB_PASSWORD' => $dbPassword,
 
-            'PURCHASE_CODE' => session('purchase_key'),
-            'BUYER_USERNAME' => session('username'),
             'ADMIN_NAME' => $adminName,
             'ADMIN_IDENTIFIER' => $adminEmail,
-            'SOFTWARE_ID' => 'MzE0NDg1OTc=',
 
             'SOFTWARE_VERSION' => SOFTWARE_VERSION,
         ];

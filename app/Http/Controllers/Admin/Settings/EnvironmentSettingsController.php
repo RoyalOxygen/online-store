@@ -91,7 +91,7 @@ class EnvironmentSettingsController extends BaseController
             return back();
         }
 
-        shell_exec('php ../artisan passport:install');
+        Artisan::call('passport:install', ['--no-interaction' => true]);
         ToastMagic::success(translate('Passport_install_successfully'));
         return back();
     }

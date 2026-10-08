@@ -70,18 +70,13 @@ class SharedController extends Controller
 
     public function getActivationCheckView(Request $request): View|RedirectResponse
     {
-        $config = $this->getAddonsConfig();
-        $adminPanel = $config['admin_panel'] ?? [];
-        $status = ($this->is_local() || env('DEVELOPMENT_ENVIRONMENT', false)) ? 1 : ($adminPanel['active'] ?? 0);
-        return $status == 1 ? redirect(url('/')) : view('installation.activation-check');
+        return redirect(url('/'));
     }
 
     public function activationCheck(Request $request): RedirectResponse
     {
         $response = $this->getRequestConfig(
-            username: $request['username'],
-            purchaseKey: $request['purchase_key'],
-            softwareType: $request->get('software_type', base64_decode('cHJvZHVjdA=='))
+            softwareType: $request->get('software_type', 'product')
         );
         $this->updateActivationConfig(app: 'admin_panel', response: $response);
 

@@ -38,10 +38,7 @@ class PrepareDatabase extends Command
      */
     public function handle(): int
     {
-        Artisan::call('debugbar:clear');
-        $routes = base_path('app/Providers/RouteServiceProvider.php');
-        $new_routes = base_path('installation/activate_update_routes.txt');
-        copy($new_routes, $routes);
-        return 0;
+        $this->error('prepare:database is disabled. It switched the site onto update-only routing.');
+        return 1;
     }
 }

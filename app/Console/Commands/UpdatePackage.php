@@ -3,8 +3,6 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\File;
 
 class UpdatePackage extends Command
 {
@@ -39,31 +37,8 @@ class UpdatePackage extends Command
      */
     public function handle(): int
     {
-        Artisan::call('debugbar:clear');
-
-        $folder = base_path('resources/themes');
-        $directories = glob($folder . '/*', GLOB_ONLYDIR);
-        foreach ($directories as $directory) {
-            $array = explode('/', $directory);
-            if (File::isDirectory($directory) && !in_array(end($array), ["default", "theme_aster"])) {
-                File::deleteDirectory($directory);
-            }
-        }
-
-        $addOnFolder = base_path('Modules');
-        $addOnDirectories = glob($addOnFolder . '/*', GLOB_ONLYDIR);
-        foreach ($addOnDirectories as $directory) {
-            $array = explode('/', $directory);
-            $directoryName = end($array);
-            if (File::isDirectory($directory) && $directoryName == 'Gateways') {
-                File::deleteDirectory($directory);
-            }
-        }
-
-        $routes = base_path('app/Providers/RouteServiceProvider.php');
-        $new_routes = base_path('installation/activate_update_routes.txt');
-        copy($new_routes, $routes);
-        return 0;
+        $this->error('prepare:updatable is disabled. It deleted modules and switched the site onto update-only routing.');
+        return 1;
     }
 
 }

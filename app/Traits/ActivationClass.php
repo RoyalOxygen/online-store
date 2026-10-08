@@ -2,9 +2,6 @@
 
 namespace App\Traits;
 
-use Exception;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 
 trait ActivationClass
@@ -34,11 +31,9 @@ trait ActivationClass
         $appConfig = [];
         foreach ($apps as $app) {
             $appConfig[$app] = [
-                "active" => "0",
+                "active" => "1",
                 "name" => "",
                 "identifier" => "",
-                "username" => "",
-                "purchase_key" => "",
                 "software_id" => "",
                 "domain" => "",
                 "software_type" => $app == 'admin_panel' ? "product" : 'addon',
@@ -54,51 +49,26 @@ trait ActivationClass
 
     public function getRequestConfig(string|null $username = null, string|null $purchaseKey = null, string|null $softwareId = null, string|null $softwareType = null, string|null $name = null, string|null $identifier = null): array
     {
-        $isLocal = true;
-        if ($this->is_local() || env('DEVELOPMENT_ENVIRONMENT', false) || env('APP_MODE') == 'demo') {
-            $isLocal = false;
-        }
-
-        $errors = [];
-        $activeStatus = base64_encode(1);
         return [
-            "active" => base64_decode($activeStatus),
+            "active" => 1,
             "name" => $name,
             "identifier" => $identifier,
-            "username" => trim($username),
-            "purchase_key" => $purchaseKey,
-            "software_id" => $softwareId ?? SOFTWARE_ID,
+            "software_id" => $softwareId ?? '',
             "domain" => $this->getDomain(),
-            "software_type" => $softwareType,
-            "errors" => $errors,
+            "software_type" => $softwareType ?: 'product',
+            "errors" => [],
         ];
     }
 
     public function checkActivationCache(string|null $app)
     {
-        if ($this->is_local() || is_null($app) || env('DEVELOPMENT_ENVIRONMENT', false) || env('APP_MODE') == 'demo') {
-            return true;
-        }
-
-        $config = $this->getAddonsConfig();
-        $cacheKey = $this->getSystemAddonCacheKey(app: $app);
-
-        if (isset($config[$app]) && (!isset($config[$app]['active']) || $config[$app]['active'] == 0)) {
-            Cache::forget($cacheKey);
-            return false;
-        } else {
-            $appConfig = $config[$app];
-            return Cache::remember($cacheKey, $this->getCacheTimeoutByDays(days: 1), function () use ($app, $appConfig) {
-                $response = $this->getRequestConfig(username: $appConfig['username'], purchaseKey: $appConfig['purchase_key'], softwareId: $appConfig['software_id'], softwareType: $appConfig['software_type'] ?? base64_decode('cHJvZHVjdA=='));
-                $this->updateActivationConfig(app: $app, response: $response);
-                return (bool)$response['active'];
-            });
-        }
+        return true;
     }
 
     public function updateActivationConfig($app, $response): void
     {
         $config = $this->getAddonsConfig();
+        $response['active'] = 1;
         $config[$app] = $response;
         $configContents = "<?php return " . var_export($config, true) . ";";
         file_put_contents(base_path('config/system-addons.php'), $configContents);

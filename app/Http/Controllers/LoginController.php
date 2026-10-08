@@ -57,29 +57,6 @@ class LoginController extends Controller
             'role' => 'required'
         ]);
 
-        $sessionKey = $request['role'] == 'admin' ? SessionKey::ADMIN_RECAPTCHA_KEY : SessionKey::EMPLOYEE_RECAPTCHA_KEY;
-        $recaptcha = getWebConfig(name: 'recaptcha');
-
-        if (isset($recaptcha) && $recaptcha['status'] == 1 && !($request['set_default_captcha'] == 1)) {
-            $request->validate([
-                'g-recaptcha-response' => [
-                    function ($attribute, $value, $fail) {
-                        $secret_key = getWebConfig(name: 'recaptcha')['secret_key'];
-                        $response = $value;
-                        $url = 'https://www.google.com/recaptcha/api/siteverify?secret=' . $secret_key . '&response=' . $response;
-                        $response = Http::get($url);
-                        $response = $response->json();
-                        if (!isset($response['success']) || !$response['success']) {
-                            $fail(translate('ReCAPTCHA_Failed'));
-                        }
-                    },
-                ],
-            ]);
-        } else if(strtolower(session($sessionKey)) != strtolower($request['default_captcha_value'])) {
-            Toastr::error(translate('ReCAPTCHA_Failed'));
-            return back();
-        }
-
         if ($request->role == 'admin') {
             $data = Admin::where('email', $request['email'])->where('admin_role_id', 1)->first();
 

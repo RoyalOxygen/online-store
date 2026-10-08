@@ -1,79 +1,79 @@
 <?php return array (
-  'admin_panel' => 
-  array (
-    'active' => '0',
-    'name' => 'Test User',
-    'identifier' => 'test@gmail.com',
-    'username' => 'test_user',
-    'purchase_key' => 'test_user',
-    'software_id' => 'MzE0NDg1OTc=',
-    'domain' => '6valley-testing.6amdev.xyz',
-    'software_type' => 'product',
-    'errors' => 
-    array (
-    ),
-  ),
-  'vendor_panel' => 
-  array (
-    'active' => '0',
-    'username' => '',
-    'purchase_key' => '',
-    'software_id' => '',
-    'domain' => '',
-    'software_type' => 'addon',
-  ),
-  'user_app' => 
-  array (
-    'active' => '0',
-    'username' => '',
-    'purchase_key' => '',
-    'software_id' => '',
-    'domain' => '',
-    'software_type' => 'addon',
-  ),
-  'vendor_app' => 
-  array (
-    'active' => '0',
-    'username' => '',
-    'purchase_key' => '',
-    'software_id' => '',
-    'domain' => '',
-    'software_type' => 'addon',
-  ),
-  'deliveryman_app' => 
+  'admin_panel' =>
   array (
     'active' => '1',
     'name' => '',
     'identifier' => '',
     'username' => '',
     'purchase_key' => '',
-    'software_id' => 'MzYwODUwNDE=',
+    'software_id' => '',
     'domain' => '',
-    'software_type' => 'addon',
-    'errors' => 
+    'software_type' => 'product',
+    'errors' =>
     array (
     ),
   ),
-  'theme_lifestyle' => 
+  'vendor_panel' =>
   array (
-    'active' => '0',
+    'active' => '1',
     'username' => '',
     'purchase_key' => '',
     'software_id' => '',
     'domain' => '',
     'software_type' => 'addon',
   ),
-  'auction' => 
+  'user_app' =>
   array (
     'active' => '1',
-    'name' => 'test',
-    'identifier' => 'test@gmail.com',
-    'username' => 'test',
-    'purchase_key' => 'test',
-    'software_id' => 'MTAwMDAzMDA=',
-    'domain' => '127.0.0.1:8000',
+    'username' => '',
+    'purchase_key' => '',
+    'software_id' => '',
+    'domain' => '',
     'software_type' => 'addon',
-    'errors' => 
+  ),
+  'vendor_app' =>
+  array (
+    'active' => '1',
+    'username' => '',
+    'purchase_key' => '',
+    'software_id' => '',
+    'domain' => '',
+    'software_type' => 'addon',
+  ),
+  'deliveryman_app' =>
+  array (
+    'active' => '1',
+    'name' => '',
+    'identifier' => '',
+    'username' => '',
+    'purchase_key' => '',
+    'software_id' => '',
+    'domain' => '',
+    'software_type' => 'addon',
+    'errors' =>
+    array (
+    ),
+  ),
+  'theme_lifestyle' =>
+  array (
+    'active' => '1',
+    'username' => '',
+    'purchase_key' => '',
+    'software_id' => '',
+    'domain' => '',
+    'software_type' => 'addon',
+  ),
+  'auction' =>
+  array (
+    'active' => '1',
+    'name' => '',
+    'identifier' => '',
+    'username' => '',
+    'purchase_key' => '',
+    'software_id' => '',
+    'domain' => '',
+    'software_type' => 'addon',
+    'errors' =>
     array (
     ),
   ),

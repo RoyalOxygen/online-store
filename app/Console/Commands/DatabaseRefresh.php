@@ -47,6 +47,11 @@ class DatabaseRefresh extends Command
      */
     public function handle(): void
     {
+        if (env('APP_MODE') !== 'demo') {
+            $this->error('database:refresh is disabled outside demo mode.');
+            return;
+        }
+
         $this->demoResetNotification();
         Artisan::call('db:wipe');
         Artisan::call('cache:clear');
@@ -59,9 +64,5 @@ class DatabaseRefresh extends Command
         Madzipper::make('demo/public.zip')->extractTo('storage/app');
 
         Cache::forget('demo_database_refresh');
-
-        if (in_array(request()->ip(), ['127.0.0.1', '::1']) && env('APP_MODE') != 'demo') {
-            Artisan::call('local:database-refresh');
-        }
     }
 }

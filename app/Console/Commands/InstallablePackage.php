@@ -2,12 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Utils\Helpers;
-use Exception;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Artisan;
-use Madnest\Madzipper\Facades\Madzipper;
 
 class InstallablePackage extends Command
 {
@@ -39,46 +34,9 @@ class InstallablePackage extends Command
      * Execute the console command.
      *
      * @return void
-     * @throws Exception
      */
     public function handle(): void
     {
-        Helpers::remove_dir('.idea');
-        Helpers::remove_dir('docs');
-        Helpers::remove_dir('.claude');
-        if (is_link(base_path('build'))) {
-            unlink(base_path('build'));
-        }
-        Artisan::call('debugbar:clear');
-
-        Helpers::remove_dir('storage/app/public');
-        Madzipper::make('installation/backup/public.zip')->extractTo('storage/app');
-
-        $folder = base_path('resources/themes');
-        $directories = glob($folder . '/*', GLOB_ONLYDIR);
-        foreach ($directories as $directory) {
-            $array = explode('/', $directory);
-            if (File::isDirectory($directory) && !in_array(end($array), ["default", "theme_aster"])) {
-                File::deleteDirectory($directory);
-            }
-        }
-
-        $addOnFolder = base_path('Modules');
-        $addOnDirectories = glob($addOnFolder . '/*', GLOB_ONLYDIR);
-        foreach ($addOnDirectories as $directory) {
-            $array = explode('/', $directory);
-            $directoryName = end($array);
-            if (File::isDirectory($directory) && (in_array($directoryName, ['Auction', 'Gateways', 'Builder']))) {
-                File::deleteDirectory($directory);
-            }
-        }
-
-        $dot_env = base_path('.env');
-        $new_env = base_path('.env.example');
-        copy($new_env, $dot_env);
-
-        $routes = base_path('app/Providers/RouteServiceProvider.php');
-        $new_routes = base_path('installation/activate_install_routes.txt');
-        copy($new_routes, $routes);
+        $this->error('prepare:installable is disabled. It deleted modules, storage, and locked the site into installer-only routing.');
     }
 }

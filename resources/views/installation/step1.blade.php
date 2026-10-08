@@ -2,14 +2,14 @@
 
 @section('content')
     <div class="text-center text-white mb-4">
-        <h2>{{ "6valley Software Installation" }}</h2>
+        <h2>{{ "Software Installation" }}</h2>
         <h6 class="fw-normal">
             {{ "Please proceed step by step with proper data according to instructions" }}
         </h6>
     </div>
 
     <div class="pb-2">
-        <div class="progress cursor-pointer" role="progressbar" aria-label="6valley Software Installation"
+        <div class="progress cursor-pointer" role="progressbar" aria-label="Software Installation"
              aria-valuenow="20" aria-valuemin="0" aria-valuemax="100" data-bs-toggle="tooltip"
              data-bs-placement="top" data-bs-custom-class="custom-progress-tooltip" data-bs-title="First Step!"
              data-bs-delay='{"hide":1000}'>
@@ -19,18 +19,6 @@
 
     <div class="card mt-4">
         <div class="p-4 mb-md-3 mx-xl-4 px-md-5">
-            <div class="d-flex justify-content-end mb-2">
-                <a href="https://docs.6amtech.com/docs-six-valley/intro/" class="d-flex align-items-center gap-1"
-                   target="_blank">
-                    {{ "Read Documentation" }}
-                    <span data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip"
-                          data-bs-title="Follow our documentation">
-                            <img src="{{ dynamicAsset(path: 'public/assets/installation/assets/img/svg-icons/info.svg') }}"
-                                 class="svg" alt="">
-                    </span>
-                </a>
-            </div>
-
             <div class="d-flex align-items-center column-gap-3 flex-wrap mb-4">
                 <h5 class="fw-bold fs text-uppercase">{{ "Step 1." }}</h5>
                 <h5 class="fw-normal">{{ "Check & Verify File Permissions" }}</h5>
@@ -139,7 +127,7 @@
             <div class="text-center">
                 <p>{{ "All the permissions are provided successfully ?" }}</p>
                 @if ($permission['curl_enabled'] == 1 && $permission['db_file_write_perm'] == 1 && $permission['routes_file_write_perm'] == 1 && $phpVersion >= 8.2)
-                    <a href="{{ route('step2') }}" class="btn btn-dark px-sm-5">
+                    <a href="{{ url('step3') }}" class="btn btn-dark px-sm-5">
                         {{ "Proceed Next" }}
                     </a>
                 @endif

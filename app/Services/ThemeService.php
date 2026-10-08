@@ -7,7 +7,6 @@ use App\Traits\SettingsTrait;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Http;
 use Throwable;
 use ZipArchive;
 
@@ -78,12 +77,17 @@ class ThemeService
     public function getPublishData(object $request): array
     {
         $themeInfo = include(base_path('resources/themes/' . $request['theme'] . '/public/addon/info.php'));
-        if ($request['theme'] != 'default' && (empty($themeInfo['purchase_code']) || empty($themeInfo['username']) || $themeInfo['is_active'] == '0')) {
-            $theme = $request['theme'];
-            return [
-                'flag' => 'inactive',
-                'view' => view('admin-views.system-setup.themes.theme-activate-modal-data', compact('themeInfo', 'theme'))->render(),
-            ];
+        if ($request['theme'] != 'default' && ($themeInfo['is_active'] ?? 0) != 1) {
+            $fullData = $themeInfo;
+            $fullData['is_active'] = 1;
+            $str = "<?php return " . var_export($fullData, true) . ";";
+            file_put_contents(base_path('resources/themes/' . $request['theme'] . '/public/addon/info.php'), $str);
+            try {
+                if (DOMAIN_POINTED_DIRECTORY == 'public') {
+                    file_put_contents(base_path('public/themes/' . $request['theme'] . '/public/addon/info.php'), $str);
+                }
+            } catch (Throwable $th) {}
+            $themeInfo = $fullData;
         }
 
         $currentTheme = theme_root_path();
@@ -110,35 +114,17 @@ class ThemeService
 
     public function getActivationData(object $request): bool
     {
-        $activationStatus = 0;
-        $remove = ["http://", "https://", "www."];
-        $url = str_replace($remove, "", url('/'));
         $fullData = include(base_path('resources/themes/' . $request['theme'] . '/public/addon/info.php'));
+        $fullData['is_active'] = 1;
+        $str = "<?php return " . var_export($fullData, true) . ";";
+        file_put_contents(base_path('resources/themes/' . $request['theme'] . '/public/addon/info.php'), $str);
+        try {
+            if (DOMAIN_POINTED_DIRECTORY == 'public') {
+                file_put_contents(base_path('public/themes/' . $request['theme'] . '/public/addon/info.php'), $str);
+            }
+        } catch (Throwable $th) {}
 
-        $post = [
-            base64_decode('dXNlcm5hbWU=') => $request['username'],
-            base64_decode('cHVyY2hhc2Vfa2V5') => $request['purchase_code'],
-            base64_decode('ZG9tYWlu') => $url,
-        ];
-
-        $response = Http::post(base64_decode('aHR0cHM6Ly9jaGVjay42YW10ZWNoLmNvbS9hcGkvdjEvZG9tYWluLXJlZ2lzdGVy'), $post)->json();
-        $status = base64_decode($response['active']) ?? 1;
-
-        if ((int)$status) {
-            $fullData['is_active'] = 1;
-            $fullData['username'] = $request['username'];
-            $fullData['purchase_code'] = $request['purchase_code'];
-            $str = "<?php return " . var_export($fullData, true) . ";";
-            file_put_contents(base_path('resources/themes/' . $request['theme'] . '/public/addon/info.php'), $str);
-            try {
-                if (DOMAIN_POINTED_DIRECTORY == 'public') {
-                    file_put_contents(base_path('public/themes/' . $request['theme'] . '/public/addon/info.php'), $str);
-                }
-            } catch (Throwable $th) {}
-            $activationStatus = 1;
-        }
-
-        return $activationStatus;
+        return true;
     }
 
     public function getNotifySellersData(object $request): array

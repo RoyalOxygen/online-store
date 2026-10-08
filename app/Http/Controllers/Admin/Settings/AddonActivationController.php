@@ -35,8 +35,6 @@ class AddonActivationController extends BaseController
     {
         $addonData['deliveryman_app'] = getWebConfig(name: 'addon_activation_delivery_man_app') ?? [
             'activation_status' => 0,
-            'username' => '',
-            'purchase_key' => '',
         ];
         return view('admin-views.system-setup.addons.addon-activation', compact('addonData'));
     }
@@ -47,10 +45,6 @@ class AddonActivationController extends BaseController
         if ($data['status']) {
             $this->businessSettingRepo->updateOrInsert(type: 'addon_activation_delivery_man_app', value: json_encode([
                 'activation_status' => $request['status'] ?? 0,
-                'name' => $request['name'] ?? '',
-                'email' => $request['email'] ?? '',
-                'username' => $request['username'],
-                'purchase_key' => $request['purchase_key'],
             ]));
             ToastMagic::success(translate('activated_successfully'));
         } else {
@@ -78,8 +72,6 @@ class AddonActivationController extends BaseController
 
         if ($data['status']) {
             $fullData['is_published'] = 1;
-            $fullData['username'] = $request['username'];
-            $fullData['purchase_code'] = $request['purchase_key'];
             file_put_contents($infoPath, "<?php return " . var_export($fullData, true) . ";");
 
             $this->addonService->runAddonMigrations($request['path']);
@@ -101,10 +93,6 @@ class AddonActivationController extends BaseController
                 type: 'addon_activation_' . $moduleKey,
                 value: json_encode([
                     'activation_status' => 1,
-                    'name' => $request['name'] ?? '',
-                    'email' => $request['email'] ?? '',
-                    'username' => $request['username'],
-                    'purchase_key' => $request['purchase_key'],
                 ])
             );
 
