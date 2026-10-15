@@ -10,7 +10,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Support\Facades\App;
-use Modules\Auction\app\Models\AuctionProduct;
 
 /**
  * @property int $id
@@ -60,7 +59,7 @@ class Brand extends Model
 
     public function auctionProduct(): HasMany
     {
-        return $this->hasMany(AuctionProduct::class, 'brand_id', 'id');
+        return $this->hasMany(\Modules\Auction\app\Models\AuctionProduct::class, 'brand_id', 'id');
     }
 
     public function translations(): MorphMany

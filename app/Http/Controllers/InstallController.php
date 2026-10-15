@@ -96,10 +96,17 @@ class InstallController extends Controller
         return view('installation.step6');
     }
 
-    function checkDatabaseConnection($db_host = "", $db_name = "", $db_user = "", $db_pass = ""): bool
+    function checkDatabaseConnection($db_host = "", $db_name = "", $db_user = "", $db_pass = "", $db_port = 3306): bool
     {
         try {
-            return (bool)(@mysqli_connect($db_host, $db_user, $db_pass, $db_name));
+            if (function_exists('mysqli_connect')) {
+                return (bool)(@mysqli_connect($db_host, $db_user, $db_pass, $db_name, (int)$db_port));
+            }
+
+            new \PDO("mysql:host={$db_host};port={$db_port};dbname={$db_name}", $db_user, $db_pass, [
+                \PDO::ATTR_TIMEOUT => 5,
+            ]);
+            return true;
         } catch (Exception $exception) {
             return false;
         }
@@ -146,5 +153,125 @@ class InstallController extends Controller
             session()->flash('error', 'Check your database permission!');
             return back();
         }
+    }
+
+    /**
+     * Single-page installer form. Everything is collected here in the browser
+     * so a fresh clone can be set up without any extra CLI/backend step.
+     */
+    public function wizard(): View|RedirectResponse
+    {
+        if (self::isInstalled()) {
+            return redirect('/');
+        }
+
+        $request = request();
+
+        return view('installation.wizard', [
+            'defaultAppUrl' => $request->getSchemeAndHttpHost() . $request->getBasePath(),
+            'defaultDbHost' => env('DB_HOST', '127.0.0.1'),
+            'defaultDbPort' => env('DB_PORT', '3306'),
+            'defaultDbName' => env('DB_DATABASE', ''),
+            'defaultDbUser' => env('DB_USERNAME', ''),
+        ]);
+    }
+
+    /**
+     * Apply the wizard input: write .env, import the schema, create the super
+     * admin and finish the installation in a single request.
+     */
+    public function install(Request $request): View|RedirectResponse
+    {
+        if (self::isInstalled()) {
+            return redirect('/');
+        }
+
+        $data = $request->validate([
+            'app_url' => 'required|url',
+            'DB_HOST' => 'required|string',
+            'DB_PORT' => 'nullable|numeric',
+            'DB_DATABASE' => 'required|string',
+            'DB_USERNAME' => 'required|string',
+            'DB_PASSWORD' => 'nullable|string',
+            'company_name' => 'required|string|max:255',
+            'admin_name' => 'required|string|max:255',
+            'admin_email' => 'required|email|max:255',
+            'admin_phone' => 'required|string|max:50',
+            'admin_password' => 'required|string|min:8',
+            'currency_model' => 'required|in:single_currency,multi_currency',
+        ]);
+
+        $data['app_url'] = rtrim($data['app_url'], '/');
+        $data['DB_PORT'] = $data['DB_PORT'] ?: '3306';
+        $data['DB_PASSWORD'] = $data['DB_PASSWORD'] ?? '';
+
+        if (!self::checkDatabaseConnection($data['DB_HOST'], $data['DB_DATABASE'], $data['DB_USERNAME'], $data['DB_PASSWORD'], (int)$data['DB_PORT'])) {
+            return back()->withInput()->withErrors([
+                'DB_HOST' => translate('Invalid database credentials or host. Please check and try again.'),
+            ]);
+        }
+
+        $this->updateEnvironmentFileFromWizard($data, $data['app_url']);
+
+        try {
+            config([
+                'database.connections.mysql.host' => $data['DB_HOST'],
+                'database.connections.mysql.port' => $data['DB_PORT'],
+                'database.connections.mysql.database' => $data['DB_DATABASE'],
+                'database.connections.mysql.username' => $data['DB_USERNAME'],
+                'database.connections.mysql.password' => $data['DB_PASSWORD'],
+            ]);
+            DB::purge('mysql');
+            DB::reconnect('mysql');
+
+            $this->importDatabase();
+            $this->addSystemPrimaryData($request);
+
+            if (DOMAIN_POINTED_DIRECTORY == 'public') {
+                $themeLink = public_path('themes');
+                if (!file_exists($themeLink) && !is_link($themeLink)) {
+                    @symlink(base_path('resources/themes'), $themeLink);
+                }
+                Artisan::call('storage:link');
+            }
+
+            $this->updateRobotTexFile();
+            Artisan::call('file:permission');
+            Artisan::call('config:clear');
+            Artisan::call('optimize:clear');
+        } catch (\Throwable $exception) {
+            return back()->withInput()->withErrors([
+                'DB_DATABASE' => translate('Installation failed') . ': ' . $exception->getMessage(),
+            ]);
+        }
+
+        return view('installation.wizard-success', [
+            'appUrl' => $data['app_url'],
+            'adminLoginUrl' => $data['app_url'] . '/login/' . (getWebConfig(name: 'admin_login_url') ?: 'admin'),
+        ]);
+    }
+
+    /**
+     * Importer for the bundled schema. A non-clean database is wiped and
+     * re-imported so a retried installation always ends with a valid schema.
+     */
+    protected function importDatabase(): void
+    {
+        $sqlPath = base_path('installation/backup/database.sql');
+        if (!file_exists($sqlPath)) {
+            throw new Exception('Database backup file not found: installation/backup/database.sql');
+        }
+
+        try {
+            DB::unprepared(file_get_contents($sqlPath));
+        } catch (\Throwable $exception) {
+            Artisan::call('db:wipe');
+            DB::unprepared(file_get_contents($sqlPath));
+        }
+    }
+
+    protected static function isInstalled(): bool
+    {
+        return (bool) config('app.installed');
     }
 }

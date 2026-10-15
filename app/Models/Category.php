@@ -11,7 +11,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Support\Facades\App;
-use Modules\Auction\app\Models\AuctionProduct;
 use Modules\TaxModule\app\Models\Taxable;
 
 /**
@@ -82,7 +81,7 @@ class Category extends Model
 
     public function auctionProduct(): HasMany
     {
-        return $this->hasMany(AuctionProduct::class, 'category_id', 'id');
+        return $this->hasMany(\Modules\Auction\app\Models\AuctionProduct::class, 'category_id', 'id');
     }
 
     // Old Relation: sub_category_product

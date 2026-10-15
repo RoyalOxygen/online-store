@@ -24,6 +24,7 @@ const DOMAIN_POINTED_DIRECTORY = 'public';
 */
 
 require __DIR__.'/../vendor/autoload.php';
+require __DIR__.'/../bootstrap/ensure-local-setup.php';
 
 /*
 |--------------------------------------------------------------------------

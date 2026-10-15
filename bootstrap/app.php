@@ -66,6 +66,7 @@ return Application::configure(basePath: dirname(__DIR__))
             // /auth/register). No-op passthrough for legacy Blade requests,
             // which never send the X-Inertia header.
             \App\Http\Middleware\HandleInertiaRequests::class,
+            \App\Http\Middleware\InstallationMiddleware::class,
         ]);
         $middleware->group('api', [
             'throttle:3000,1',

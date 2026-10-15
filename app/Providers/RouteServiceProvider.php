@@ -45,6 +45,7 @@ class RouteServiceProvider extends ServiceProvider
     public function map()
     {
         $registerHostRoutes = function () {
+            $this->mapInstallRoutes();
             $this->mapApiRoutes();
             $this->mapApiv2Routes();
             $this->mapApiv3Routes();
@@ -59,6 +60,13 @@ class RouteServiceProvider extends ServiceProvider
         } else {
             $registerHostRoutes();
         }
+    }
+
+    protected function mapInstallRoutes(): void
+    {
+        Route::middleware('web')
+            ->namespace($this->namespace)
+            ->group(base_path('routes/install.php'));
     }
 
     protected function mapApiRoutes(): void

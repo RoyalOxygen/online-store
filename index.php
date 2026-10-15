@@ -23,6 +23,7 @@ const DOMAIN_POINTED_DIRECTORY = 'root';
 */
 
 require __DIR__ . '/vendor/autoload.php';
+require __DIR__ . '/bootstrap/ensure-local-setup.php';
 
 /*
 |--------------------------------------------------------------------------

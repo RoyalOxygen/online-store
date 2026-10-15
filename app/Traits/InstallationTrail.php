@@ -346,9 +346,6 @@ trait InstallationTrail
             $adminEmail = '"' . str_replace('"', '\"', $adminEmail) . '"';
         }
 
-        $envPath = base_path('.env');
-        $existingEnv = file_exists($envPath) ? file_get_contents($envPath) : '';
-
         $appUrl = URL::to('/');
         $hostDomain = parse_url($appUrl, PHP_URL_HOST) ?: '';
         $hostBaseDomain = Helpers::getHostBaseDomain($hostDomain);
@@ -382,20 +379,88 @@ trait InstallationTrail
             'SOFTWARE_VERSION' => SOFTWARE_VERSION,
         ];
 
-        $lines = explode(PHP_EOL, $existingEnv);
+        $this->mergeEnvironmentValues($updates);
+    }
+
+    /**
+     * Build and persist the .env values collected by the single-page installer.
+     * New keys are appended, existing keys are updated in place.
+     */
+    public function updateEnvironmentFileFromWizard(array $data, string $appUrl): void
+    {
+        $hostDomain = parse_url($appUrl, PHP_URL_HOST) ?: '';
+        $hostBaseDomain = Helpers::getHostBaseDomain($hostDomain);
+        $publicIp = filter_var($hostDomain, FILTER_VALIDATE_IP) ? $hostDomain : '';
+
+        $updates = [
+            'APP_NAME' => self::formatEnvironmentValue($data['company_name']),
+            'APP_ENV' => 'live',
+            'APP_KEY' => 'base64:' . base64_encode(random_bytes(32)),
+            'APP_DEBUG' => 'false',
+            'APP_INSTALL' => 'true',
+            'APP_LOG_LEVEL' => 'debug',
+            'APP_MODE' => 'live',
+            'APP_URL' => $appUrl,
+
+            'APP_HOST_DOMAIN' => $hostDomain,
+            'APP_HOST_BASE_DOMAIN' => $hostBaseDomain,
+            'APP_PUBLIC_IP' => $publicIp,
+
+            'DB_CONNECTION' => 'mysql',
+            'DB_HOST' => $data['DB_HOST'],
+            'DB_PORT' => $data['DB_PORT'] ?: '3306',
+            'DB_DATABASE' => $data['DB_DATABASE'],
+            'DB_USERNAME' => self::formatEnvironmentValue($data['DB_USERNAME']),
+            'DB_PASSWORD' => self::formatEnvironmentValue($data['DB_PASSWORD']),
+
+            'ADMIN_NAME' => self::formatEnvironmentValue($data['admin_name']),
+            'ADMIN_IDENTIFIER' => self::formatEnvironmentValue($data['admin_email']),
+
+            'SOFTWARE_VERSION' => SOFTWARE_VERSION,
+        ];
+
+        $this->mergeEnvironmentValues($updates);
+    }
+
+    /**
+     * Quote a value only when it contains characters that would break the
+     * KEY=VALUE .env syntax. Empty passwords stay empty.
+     */
+    protected static function formatEnvironmentValue(string $value): string
+    {
+        if ($value === '') {
+            return '';
+        }
+
+        if (preg_match('/[^a-zA-Z0-9_.\-]/', $value)) {
+            return '"' . str_replace('"', '\"', $value) . '"';
+        }
+
+        return $value;
+    }
+
+    /**
+     * Update/append the given keys in the .env file while preserving every
+     * other line (comments and unrelated settings included).
+     */
+    protected function mergeEnvironmentValues(array $updates): void
+    {
+        $envPath = base_path('.env');
+        $existingEnv = file_exists($envPath) ? file_get_contents($envPath) : '';
+
         $newLines = [];
         $updatedKeys = [];
 
-        foreach ($lines as $line) {
+        foreach (explode(PHP_EOL, $existingEnv) as $line) {
             $line = rtrim($line);
-            if (empty(trim($line)) || strpos(trim($line), '#') === 0) {
+            if ($line === '' || strpos(trim($line), '#') === 0) {
                 $newLines[] = $line;
                 continue;
             }
 
             $found = false;
             foreach (array_keys($updates) as $key) {
-                if (preg_match("/^{$key}\s*=/i", trim($line))) {
+                if (preg_match('/^' . preg_quote($key, '/') . '\s*=/i', trim($line))) {
                     $newLines[] = "{$key}={$updates[$key]}";
                     $updatedKeys[] = $key;
                     $found = true;
@@ -409,7 +474,7 @@ trait InstallationTrail
         }
 
         foreach ($updates as $key => $value) {
-            if (!in_array($key, $updatedKeys)) {
+            if (!in_array($key, $updatedKeys, true)) {
                 $newLines[] = "{$key}={$value}";
             }
         }

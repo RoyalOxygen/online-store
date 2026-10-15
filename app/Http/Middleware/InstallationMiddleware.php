@@ -16,6 +16,10 @@ class InstallationMiddleware
      */
     public function handle(Request $request, Closure $next)
     {
+        if (!config('app.installed') && !$request->is('install') && !$request->is('install/*')) {
+            return redirect()->route('install.wizard');
+        }
+
         return $next($request);
     }
 }

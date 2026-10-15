@@ -24,7 +24,6 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
-use Modules\Auction\app\Enums\AuctionStatus;
 
 class HomeController extends Controller
 {
@@ -431,9 +430,17 @@ class HomeController extends Controller
             Cache::put(CACHE_HOME_PAGE_AUCTION_PRODUCTS_KEYS, $cacheKeys, CACHE_FOR_3_HOURS);
         }
 
+        if (!class_exists(\Modules\Auction\app\Models\AuctionProduct::class)
+            || !class_exists(\Modules\Auction\app\Enums\AuctionStatus::class)) {
+            return null;
+        }
+
         return Cache::remember($cacheKey, CACHE_FOR_3_HOURS, function () {
             return \Modules\Auction\app\Models\AuctionProduct::active()
-                ->whereAuctionCurrentStatus([AuctionStatus::LIVE, AuctionStatus::UPCOMING])
+                ->whereAuctionCurrentStatus([
+                    \Modules\Auction\app\Enums\AuctionStatus::LIVE,
+                    \Modules\Auction\app\Enums\AuctionStatus::UPCOMING,
+                ])
                 ->orderByDesc('id')
                 ->take(8)
                 ->get();

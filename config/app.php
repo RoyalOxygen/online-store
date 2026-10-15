@@ -54,6 +54,18 @@ return [
 
     'url' => env('APP_URL', 'http://localhost'),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Installed
+    |--------------------------------------------------------------------------
+    |
+    | Flips to true once the browser installer has completed. While false the
+    | web middleware redirects every request to the /install wizard.
+    |
+    */
+
+    'installed' => env('APP_INSTALL', false),
+
 
     /*
     |--------------------------------------------------------------------------
